@@ -1,4 +1,6 @@
-# AI Development Lifecycle Platform (AIDLC)
+<img width="100" height="100" alt="Gemini_Generated_Image_k72grpk72grpk72g" src="https://github.com/user-attachments/assets/01ed9616-bd91-4adc-a187-12535a052d03" />
+
+# AI Efficiency Tracker
 
 Comprehensive platform for tracking AI-assisted development efficiency with Kiro integration, external tool integrations, and advanced reporting and visualization capabilities.
 
