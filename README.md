@@ -1,3 +1,5 @@
+<img width="100" height="100" alt="Gemini_Generated_Image_k72grpk72grpk72g" src="https://github.com/user-attachments/assets/01ed9616-bd91-4adc-a187-12535a052d03" />
+
 # AI Efficiency Tracker
 
 Track AI-assisted development efficiency with Kiro integration, measuring time saved, code metrics, and productivity gains.
