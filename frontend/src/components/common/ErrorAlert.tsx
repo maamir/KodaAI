@@ -1,4 +1,4 @@
-import { Alert, AlertTitle, Button, Box } from '@mui/material';
+import { Alert, AlertTitle, Button } from '@mui/material';
 
 interface ErrorAlertProps {
   title?: string;

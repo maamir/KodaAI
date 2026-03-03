@@ -32,8 +32,8 @@ export function useReportStatus(reportId: string, enabled = true) {
     queryKey: ['reports', 'status', reportId],
     queryFn: () => getReportStatus(reportId),
     enabled: !!reportId && enabled,
-    refetchInterval: (data) => {
-      const status = data?.data?.status;
+    refetchInterval: (query) => {
+      const status = query?.state?.data?.data?.status;
       return status === 'PENDING' || status === 'GENERATING' ? 2000 : false;
     },
     staleTime: 0,

@@ -62,7 +62,7 @@ export function useUpdateDashboardView() {
   return useMutation({
     mutationFn: ({ id, config }: { id: string; config: Partial<DashboardViewConfig> }) =>
       updateDashboardView(id, config),
-    onSuccess: (_, { id }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard-config'] });
     },
   });
