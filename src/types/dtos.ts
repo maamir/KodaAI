@@ -194,3 +194,153 @@ export interface ConsistencyCheckResponse {
   }>;
   completedAt: Date | null;
 }
+
+// Unit 3: Reporting and Visualization DTOs
+
+// Dashboard DTOs
+export interface DashboardDataRequest {
+  featureId?: string;
+  dateRangeStart?: Date;
+  dateRangeEnd?: Date;
+  metricTypes?: string[];
+}
+
+export interface DashboardDataResponse {
+  metrics: CalculatedMetricResponse[];
+  features: FeatureResponse[];
+  summary: {
+    totalFeatures: number;
+    completedFeatures: number;
+    totalTimeSaved: number;
+    averageSpeedMultiplier: number;
+    totalCostSavings: number;
+  };
+}
+
+export interface DashboardWidgetData {
+  widgetId: string;
+  widgetType: string;
+  data: any;
+  lastUpdated: Date;
+}
+
+// Metric DTOs
+export interface CalculateMetricRequest {
+  featureId: string;
+  metricType: 'TIME_SAVED' | 'SPEED_MULTIPLIER' | 'COST_SAVINGS' | 'PRODUCTIVITY_GAIN' | 'QUALITY_SCORE' | 'VELOCITY' | 'CYCLE_TIME' | 'LEAD_TIME' | 'THROUGHPUT' | 'DEFECT_RATE';
+  parameters?: Record<string, any>;
+}
+
+export interface CalculatedMetricResponse {
+  id: string;
+  featureId: string;
+  metricType: string;
+  metricValue: number;
+  formula: string;
+  parameters: Record<string, any>;
+  calculatedAt: Date;
+  validUntil: Date | null;
+}
+
+export interface MetricTrendResponse {
+  metricType: string;
+  dataPoints: Array<{
+    date: Date;
+    value: number;
+  }>;
+  trend: 'INCREASING' | 'DECREASING' | 'STABLE';
+  changePercentage: number;
+}
+
+// Report DTOs
+export interface GenerateReportRequest {
+  reportType: 'FEATURE_SUMMARY' | 'TIME_ANALYSIS' | 'PRODUCTIVITY' | 'COST_BENEFIT' | 'QUALITY_METRICS' | 'VELOCITY_TRENDS' | 'CUSTOM';
+  format: 'PDF' | 'EXCEL' | 'HTML' | 'JSON';
+  dateRangeStart?: Date;
+  dateRangeEnd?: Date;
+  featureIds?: string[];
+  filters?: Record<string, any>;
+  includeCharts?: boolean;
+  includeRawData?: boolean;
+}
+
+export interface ReportResponse {
+  id: string;
+  reportType: string;
+  format: string;
+  status: 'PENDING' | 'GENERATING' | 'COMPLETED' | 'FAILED';
+  fileUrl: string | null;
+  fileSize: number | null;
+  expiresAt: Date | null;
+  generatedBy: string;
+  generatedAt: Date | null;
+  error: string | null;
+  parameters: Record<string, any>;
+}
+
+export interface ReportStatusResponse {
+  id: string;
+  status: 'PENDING' | 'GENERATING' | 'COMPLETED' | 'FAILED';
+  progress: number;
+  fileUrl: string | null;
+  error: string | null;
+}
+
+// Dashboard Configuration DTOs
+export interface CreateDashboardViewRequest {
+  name: string;
+  description?: string;
+  viewType: 'EXECUTIVE' | 'MANAGER' | 'DEVELOPER' | 'CUSTOM';
+  layout: Record<string, any>;
+  widgets: Array<{
+    widgetId: string;
+    widgetType: string;
+    position: { x: number; y: number; w: number; h: number };
+    config: Record<string, any>;
+  }>;
+  filters?: Record<string, any>;
+  isDefault?: boolean;
+}
+
+export interface UpdateDashboardViewRequest {
+  name?: string;
+  description?: string;
+  layout?: Record<string, any>;
+  widgets?: Array<{
+    widgetId: string;
+    widgetType: string;
+    position: { x: number; y: number; w: number; h: number };
+    config: Record<string, any>;
+  }>;
+  filters?: Record<string, any>;
+  isDefault?: boolean;
+}
+
+export interface DashboardViewResponse {
+  id: string;
+  userId: string;
+  name: string;
+  description: string | null;
+  viewType: string;
+  layout: Record<string, any>;
+  widgets: Record<string, any>;
+  filters: Record<string, any>;
+  isDefault: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Analytics DTOs
+export interface TrackAnalyticsEventRequest {
+  eventType: string;
+  eventData: Record<string, any>;
+  userId?: string;
+  sessionId?: string;
+}
+
+export interface AnalyticsEventResponse {
+  eventId: string;
+  eventType: string;
+  timestamp: Date;
+  success: boolean;
+}

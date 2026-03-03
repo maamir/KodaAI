@@ -7,6 +7,10 @@ import { GitHubCommitsSyncService } from './integrations/github/github-commits-s
 import { GitHubPRsSyncService } from './integrations/github/github-prs-sync.service';
 import { HookEventService } from './services/hook-event.service';
 import { ConsistencyCheckerService } from './services/consistency-checker.service';
+// Unit 3: Reporting and Visualization imports
+import { reportGenerationService } from './services/report-generation.service';
+import { metricCalculationService } from './services/metric-calculation.service';
+import { reportStorageService } from './services/report-storage.service';
 
 const prisma = new PrismaClient();
 const jobQueueManager = new JobQueueManagerService(prisma);
@@ -57,6 +61,15 @@ async function processJob(job: any): Promise<void> {
 
       case JobType.DATA_CONSISTENCY_CHECK:
         result = await handleConsistencyCheck(job.payload);
+        break;
+
+      // Unit 3: Reporting and Visualization job handlers
+      case 'REPORT_GENERATION' as JobType:
+        result = await handleReportGeneration(job.payload);
+        break;
+
+      case 'METRIC_CALCULATION' as JobType:
+        result = await handleMetricCalculation(job.payload);
         break;
 
       default:
@@ -144,6 +157,80 @@ async function handleConsistencyCheck(payload: any): Promise<any> {
 }
 
 /**
+ * Handle report generation job (Unit 3)
+ */
+async function handleReportGeneration(payload: any): Promise<any> {
+  const {
+    reportType,
+    format,
+    dateRangeStart,
+    dateRangeEnd,
+    featureIds,
+    filters,
+    includeCharts,
+    includeRawData,
+    generatedBy,
+  } = payload;
+
+  logger.info('Starting report generation', { reportType, format });
+
+  const reportId = await reportGenerationService.generateReport({
+    reportType,
+    format,
+    dateRangeStart: dateRangeStart ? new Date(dateRangeStart) : undefined,
+    dateRangeEnd: dateRangeEnd ? new Date(dateRangeEnd) : undefined,
+    featureIds,
+    filters,
+    includeCharts,
+    includeRawData,
+    generatedBy,
+  });
+
+  logger.info('Report generation completed', { reportId });
+
+  return {
+    reportId,
+    status: 'COMPLETED',
+    completedAt: new Date(),
+  };
+}
+
+/**
+ * Handle metric calculation job (Unit 3)
+ */
+async function handleMetricCalculation(payload: any): Promise<any> {
+  const { featureId, metricTypes, parameters } = payload;
+
+  logger.info('Starting metric calculation', { featureId, metricTypes });
+
+  let results;
+  if (metricTypes && Array.isArray(metricTypes)) {
+    results = await metricCalculationService.calculateMultipleMetrics(
+      featureId,
+      metricTypes,
+      parameters
+    );
+  } else {
+    results = await metricCalculationService.recalculateAllMetrics(featureId);
+  }
+
+  logger.info('Metric calculation completed', {
+    featureId,
+    metricsCalculated: results.length,
+  });
+
+  return {
+    featureId,
+    metricsCalculated: results.length,
+    results: results.map(r => ({
+      metricType: r.metricType,
+      metricValue: r.metricValue,
+    })),
+    completedAt: new Date(),
+  };
+}
+
+/**
  * Main worker loop
  */
 async function workerLoop(): Promise<void> {
@@ -210,6 +297,18 @@ logger.info('Background worker starting', {
 
 // Start consistency checker cron job
 consistencyChecker.startDailyCheck();
+
+// Start report cleanup cron job (Unit 3)
+setInterval(async () => {
+  try {
+    const deletedCount = await reportStorageService.cleanupExpiredReports();
+    if (deletedCount > 0) {
+      logger.info('Cleaned up expired reports', { count: deletedCount });
+    }
+  } catch (error) {
+    logger.error('Error cleaning up expired reports', { error });
+  }
+}, 24 * 60 * 60 * 1000); // Run daily
 
 // Start worker loop
 workerLoop().catch(error => {

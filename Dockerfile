@@ -1,4 +1,4 @@
-# Multi-stage build for AI Efficiency Tracker
+# Multi-stage build for AIDLC Platform
 
 # Stage 1: Build
 FROM node:20-alpine AS builder
@@ -24,6 +24,19 @@ RUN npm run build
 # Stage 2: Production
 FROM node:20-alpine
 
+# Install Chromium and dependencies for Puppeteer
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
+# Tell Puppeteer to use installed Chromium
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
 WORKDIR /app
 
 # Copy package files
@@ -41,17 +54,17 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
-# Create logs directory
-RUN mkdir -p logs && chown -R nodejs:nodejs logs
+# Create directories for reports and logs
+RUN mkdir -p reports logs && chown -R nodejs:nodejs reports logs
 
 USER nodejs
 
 # Expose ports
-EXPOSE 3000 3001
+EXPOSE 4000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD node -e "require('http').get('http://localhost:4000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Start application
 CMD ["node", "dist/index.js"]

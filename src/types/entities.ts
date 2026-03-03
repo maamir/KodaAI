@@ -10,6 +10,10 @@ import {
   GitHubPullRequest,
   IntegrationJob,
   IntegrationCache,
+  // Unit 3: Reporting and Visualization types
+  CalculatedMetric,
+  Report,
+  DashboardView,
 } from '@prisma/client';
 
 // Re-export Prisma types
@@ -34,6 +38,15 @@ export type {
   JobType,
   JobStatus,
   PullRequestState,
+  // Unit 3: Reporting and Visualization types
+  CalculatedMetric,
+  Report,
+  DashboardView,
+  MetricType,
+  ReportType,
+  ReportFormat,
+  ReportStatus,
+  ViewType,
 } from '@prisma/client';
 
 // Extended types with relationships
@@ -44,6 +57,7 @@ export type FeatureWithRelations = Feature & {
   jiraStory?: JiraStory | null;
   githubCommits?: GitHubCommit[];
   githubPRs?: GitHubPullRequest[];
+  calculatedMetrics?: CalculatedMetric[];
 };
 
 export type GitHubRepositoryWithRelations = GitHubRepository & {
@@ -59,6 +73,10 @@ export type GitHubCommitWithRelations = GitHubCommit & {
 export type GitHubPullRequestWithRelations = GitHubPullRequest & {
   repository?: GitHubRepository;
   feature?: Feature | null;
+};
+
+export type CalculatedMetricWithRelations = CalculatedMetric & {
+  feature?: Feature;
 };
 
 export type FeatureSummary = {
@@ -78,4 +96,41 @@ export type HookDataSummary = {
   totalAgentExecutions: number;
   totalAgentTimeSeconds: number;
   averageAgentTimeSeconds: number;
+};
+
+// Unit 3: Reporting and Visualization summary types
+export type MetricCalculationResult = {
+  metricType: string;
+  metricValue: number;
+  formula: string;
+  parameters: Record<string, any>;
+};
+
+export type DashboardData = {
+  metrics: CalculatedMetric[];
+  features: Feature[];
+  summary: {
+    totalFeatures: number;
+    completedFeatures: number;
+    totalTimeSaved: number;
+    averageSpeedMultiplier: number;
+    totalCostSavings: number;
+  };
+};
+
+export type ReportGenerationParams = {
+  reportType: string;
+  format: string;
+  dateRangeStart?: Date;
+  dateRangeEnd?: Date;
+  filters: Record<string, any>;
+  userId: string;
+};
+
+export type ReportStatus = {
+  id: string;
+  status: string;
+  progress?: number;
+  fileUrl?: string;
+  error?: string;
 };

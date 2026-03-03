@@ -32,6 +32,34 @@ const configSchema = z.object({
   INTEGRATION_JOB_POLL_INTERVAL: z.coerce.number().int().positive().default(5000), // 5 seconds
   INTEGRATION_MAX_RETRIES: z.coerce.number().int().nonnegative().default(3),
   INTEGRATION_RATE_LIMIT_THRESHOLD: z.coerce.number().min(0).max(1).default(0.2), // 20%
+  
+  // Unit 3: Reporting and Visualization Configuration
+  // AWS S3 Configuration
+  AWS_REGION: z.string().default('us-east-1'),
+  S3_BUCKET_NAME: z.string().optional(),
+  AWS_ACCESS_KEY_ID: z.string().optional(),
+  AWS_SECRET_ACCESS_KEY: z.string().optional(),
+  
+  // Report Configuration
+  REPORT_EXPIRATION_DAYS: z.coerce.number().int().positive().default(30),
+  SIGNED_URL_EXPIRATION_DAYS: z.coerce.number().int().positive().default(7),
+  MAX_REPORT_SIZE_MB: z.coerce.number().int().positive().default(50),
+  MAX_FEATURES_PER_REPORT: z.coerce.number().int().positive().default(1000),
+  REPORT_TIMEOUT_MS: z.coerce.number().int().positive().default(300000), // 5 minutes
+  
+  // Metric Calculation Configuration
+  METRIC_CALCULATION_BATCH_SIZE: z.coerce.number().int().positive().default(10),
+  METRIC_CALCULATION_TIMEOUT_MS: z.coerce.number().int().positive().default(30000), // 30 seconds
+  DEFAULT_HOURLY_RATE: z.coerce.number().positive().default(150),
+  
+  // Dashboard Configuration
+  DASHBOARD_CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(30),
+  DASHBOARD_MAX_WIDGETS: z.coerce.number().int().positive().default(12),
+  DASHBOARD_MAX_DATA_POINTS: z.coerce.number().int().positive().default(1000),
+  
+  // Analytics Configuration
+  ANALYTICS_API_KEY: z.string().optional(),
+  ANALYTICS_ENABLED: z.coerce.boolean().default(false),
 });
 
 class ConfigurationManager {
@@ -101,6 +129,24 @@ class ConfigurationManager {
       console.error('Integration credentials validation failed:');
       errors.forEach((err) => console.error(`  - ${err}`));
       throw new Error('Invalid integration credentials configuration');
+    }
+  }
+
+  validateReportingCredentials(): void {
+    const errors: string[] = [];
+
+    // Validate S3 credentials if report generation is enabled
+    const hasS3Config = this.config.S3_BUCKET_NAME || this.config.AWS_ACCESS_KEY_ID || this.config.AWS_SECRET_ACCESS_KEY;
+    if (hasS3Config) {
+      if (!this.config.S3_BUCKET_NAME) errors.push('S3_BUCKET_NAME is required when S3 is configured');
+      if (!this.config.AWS_ACCESS_KEY_ID) errors.push('AWS_ACCESS_KEY_ID is required when S3 is configured');
+      if (!this.config.AWS_SECRET_ACCESS_KEY) errors.push('AWS_SECRET_ACCESS_KEY is required when S3 is configured');
+    }
+
+    if (errors.length > 0) {
+      console.error('Reporting credentials validation failed:');
+      errors.forEach((err) => console.error(`  - ${err}`));
+      throw new Error('Invalid reporting credentials configuration');
     }
   }
 }

@@ -62,6 +62,61 @@ export const databaseConnections = new promClient.Gauge({
   help: 'Number of active database connections',
 });
 
+// Unit 3: Reporting and Visualization metrics
+export const metricsCalculated = new promClient.Counter({
+  name: 'metrics_calculated_total',
+  help: 'Total number of metrics calculated',
+  labelNames: ['metric_type'],
+});
+
+export const metricCalculationDuration = new promClient.Histogram({
+  name: 'metric_calculation_duration_seconds',
+  help: 'Duration of metric calculations in seconds',
+  labelNames: ['metric_type'],
+  buckets: [0.1, 0.5, 1, 2, 5, 10],
+});
+
+export const reportsGenerated = new promClient.Counter({
+  name: 'reports_generated_total',
+  help: 'Total number of reports generated',
+  labelNames: ['report_type', 'format', 'status'],
+});
+
+export const reportGenerationDuration = new promClient.Histogram({
+  name: 'report_generation_duration_seconds',
+  help: 'Duration of report generation in seconds',
+  labelNames: ['report_type', 'format'],
+  buckets: [1, 5, 10, 30, 60, 120, 300],
+});
+
+export const reportStorageSize = new promClient.Gauge({
+  name: 'report_storage_size_bytes',
+  help: 'Total size of stored reports in bytes',
+});
+
+export const dashboardViews = new promClient.Counter({
+  name: 'dashboard_views_total',
+  help: 'Total number of dashboard views',
+  labelNames: ['view_type'],
+});
+
+export const dashboardRefreshes = new promClient.Counter({
+  name: 'dashboard_refreshes_total',
+  help: 'Total number of dashboard refreshes',
+});
+
+export const analyticsEvents = new promClient.Counter({
+  name: 'analytics_events_total',
+  help: 'Total number of analytics events tracked',
+  labelNames: ['event_type'],
+});
+
+export const realtimeUpdates = new promClient.Counter({
+  name: 'realtime_updates_total',
+  help: 'Total number of real-time updates broadcast',
+  labelNames: ['update_type'],
+});
+
 export function getMetricsRegistry() {
   return promClient.register;
 }

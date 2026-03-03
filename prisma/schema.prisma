@@ -66,6 +66,49 @@ enum PullRequestState {
   MERGED
 }
 
+// Unit 3: Reporting and Visualization Enums
+enum MetricType {
+  TIME_SAVED
+  SPEED_MULTIPLIER
+  COST_SAVINGS
+  PRODUCTIVITY_SCORE
+  QUALITY_SCORE
+  EFFICIENCY_RATIO
+  ROI_PERCENTAGE
+  FEATURE_VELOCITY
+  CODE_QUALITY_INDEX
+  COLLABORATION_SCORE
+}
+
+enum ReportType {
+  DEVELOPER_PERSONAL
+  TEAM_PRODUCTIVITY
+  FEATURE_DETAIL
+  EXECUTIVE_SUMMARY
+  QUARTERLY_REVIEW
+  CUSTOM
+}
+
+enum ReportFormat {
+  PDF
+  EXCEL
+  HTML
+}
+
+enum ReportStatus {
+  GENERATING
+  GENERATED
+  FAILED
+  EXPIRED
+}
+
+enum ViewType {
+  DEVELOPER
+  MANAGER
+  EXECUTIVE
+  CUSTOM
+}
+
 // Models
 model Feature {
   id              String         @id @default(uuid())
@@ -86,6 +129,7 @@ model Feature {
   jiraStory       JiraStory?
   githubCommits   GitHubCommit[]
   githubPRs       GitHubPullRequest[]
+  calculatedMetrics CalculatedMetric[]
 
   @@index([featureId])
   @@index([status])
@@ -293,4 +337,65 @@ model IntegrationCache {
 
   @@index([cacheKey])
   @@index([expiresAt])
+}
+
+// Unit 3: Reporting and Visualization Models
+
+model CalculatedMetric {
+  id              String     @id @default(uuid())
+  featureId       String
+  metricType      MetricType
+  metricValue     Float
+  calculatedAt    DateTime   @default(now())
+  formula         String?    // Formula used for calculation
+  parameters      Json?      // Parameters used in calculation
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  // Relationships
+  feature         Feature    @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@unique([featureId, metricType])
+  @@index([featureId])
+  @@index([metricType])
+  @@index([calculatedAt])
+  @@index([featureId, metricType, calculatedAt])
+}
+
+model Report {
+  id              String       @id @default(uuid())
+  reportType      ReportType
+  format          ReportFormat
+  status          ReportStatus @default(GENERATING)
+  generatedBy     String       // User ID or system identifier
+  filters         Json         // Report filters and parameters
+  fileUrl         String?      // S3 URL
+  fileSize        Int?         // Bytes
+  metadata        Json?        // Additional metadata (partial generation info, etc.)
+  generatedAt     DateTime?
+  expiresAt       DateTime?    // Auto-delete after 30 days
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([generatedBy])
+  @@index([generatedAt])
+  @@index([reportType])
+  @@index([expiresAt])
+  @@index([status])
+}
+
+model DashboardView {
+  id              String     @id @default(uuid())
+  userId          String     // User identifier
+  viewType        ViewType
+  name            String
+  configuration   Json       // Widget layout, filters, preferences
+  isDefault       Boolean    @default(false)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([viewType])
+  @@index([userId, viewType])
+  @@index([isDefault])
 }

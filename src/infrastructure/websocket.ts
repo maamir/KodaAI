@@ -40,6 +40,40 @@ export function initializeWebSocket(httpServer?: HTTPServer): SocketIOServer {
       });
     });
 
+    // Unit 3: Dashboard room subscriptions
+    socket.on('subscribe_dashboard', (userId: string) => {
+      socket.join(`dashboard:${userId}`);
+      logger.debug('Client subscribed to dashboard', {
+        socketId: socket.id,
+        userId,
+      });
+    });
+
+    socket.on('unsubscribe_dashboard', (userId: string) => {
+      socket.leave(`dashboard:${userId}`);
+      logger.debug('Client unsubscribed from dashboard', {
+        socketId: socket.id,
+        userId,
+      });
+    });
+
+    // Unit 3: Report room subscriptions
+    socket.on('subscribe_report', (reportId: string) => {
+      socket.join(`report:${reportId}`);
+      logger.debug('Client subscribed to report', {
+        socketId: socket.id,
+        reportId,
+      });
+    });
+
+    socket.on('unsubscribe_report', (reportId: string) => {
+      socket.leave(`report:${reportId}`);
+      logger.debug('Client unsubscribed from report', {
+        socketId: socket.id,
+        reportId,
+      });
+    });
+
     socket.on('disconnect', (reason) => {
       logger.info('WebSocket client disconnected', {
         socketId: socket.id,
@@ -86,4 +120,31 @@ export function broadcastGlobal(event: string, data: any): void {
 
   io.emit(event, data);
   logger.debug('Global broadcast', { event });
+}
+
+// Unit 3: Additional broadcast functions
+export function broadcastToDashboard(userId: string, event: string, data: any): void {
+  if (!io) {
+    logger.warn('WebSocket server not initialized, cannot broadcast');
+    return;
+  }
+
+  io.to(`dashboard:${userId}`).emit(event, data);
+  logger.debug('Broadcast to dashboard', {
+    userId,
+    event,
+  });
+}
+
+export function broadcastToReport(reportId: string, event: string, data: any): void {
+  if (!io) {
+    logger.warn('WebSocket server not initialized, cannot broadcast');
+    return;
+  }
+
+  io.to(`report:${reportId}`).emit(event, data);
+  logger.debug('Broadcast to report', {
+    reportId,
+    event,
+  });
 }
