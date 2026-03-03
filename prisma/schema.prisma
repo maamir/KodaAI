@@ -1,0 +1,296 @@
+// Prisma schema for AI Efficiency Tracker
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum FeatureStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  PAUSED
+  COMPLETED
+  ABANDONED
+}
+
+enum Phase {
+  INCEPTION
+  CONSTRUCTION
+  TESTING
+}
+
+enum HookEventType {
+  FILE_EDIT
+  PROMPT_SUBMITTED
+  AGENT_EXECUTION
+}
+
+enum EstimateSource {
+  USER_INPUT
+  JIRA_STORY
+  CALCULATED
+}
+
+enum ConfigType {
+  STRING
+  NUMBER
+  BOOLEAN
+  JSON
+}
+
+// Unit 2: Integration Module Enums
+enum JobType {
+  JIRA_SYNC
+  GITHUB_SYNC_COMMITS
+  GITHUB_SYNC_PRS
+  HOOK_EVENT_PROCESS
+  DATA_CONSISTENCY_CHECK
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum PullRequestState {
+  OPEN
+  CLOSED
+  MERGED
+}
+
+// Models
+model Feature {
+  id              String         @id @default(uuid())
+  featureId       String         @unique // Jira story ID (e.g., "PROJ-123")
+  name            String
+  status          FeatureStatus  @default(NOT_STARTED)
+  currentPhase    Phase          @default(INCEPTION)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  estimatedHours  Float?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  // Relationships
+  timeTracking    TimeTracking[]
+  hookEvents      HookEvent[]
+  estimate        Estimate?
+  jiraStory       JiraStory?
+  githubCommits   GitHubCommit[]
+  githubPRs       GitHubPullRequest[]
+
+  @@index([featureId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model TimeTracking {
+  id              String    @id @default(uuid())
+  featureId       String
+  phase           Phase
+  startTime       DateTime
+  endTime         DateTime?
+  durationMinutes Int       @default(0)
+  isPaused        Boolean   @default(false)
+  pausedAt        DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relationships
+  feature         Feature   @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@index([featureId])
+  @@index([phase])
+  @@index([endTime])
+}
+
+model HookEvent {
+  id          String        @id @default(uuid())
+  featureId   String
+  eventType   HookEventType
+  eventData   Json
+  timestamp   DateTime
+  processed   Boolean       @default(false)
+  processedAt DateTime?
+  createdAt   DateTime      @default(now())
+
+  // Relationships
+  feature     Feature       @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@index([featureId])
+  @@index([timestamp])
+  @@index([processed])
+}
+
+model Estimate {
+  id                  String         @id @default(uuid())
+  featureId           String         @unique
+  totalHours          Float
+  inceptionHours      Float?
+  constructionHours   Float?
+  testingHours        Float?
+  source              EstimateSource
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  // Relationships
+  feature             Feature        @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@index([featureId])
+}
+
+model Configuration {
+  key         String     @id
+  value       String
+  type        ConfigType
+  description String
+  updatedAt   DateTime   @updatedAt
+}
+
+
+// Unit 2: Integration Module Models
+
+model JiraStory {
+  id                 String    @id @default(uuid())
+  featureId          String    @unique
+  jiraKey            String    @unique
+  storyPoints        Float?
+  originalEstimate   Int?      // seconds
+  remainingEstimate  Int?      // seconds
+  timeSpent          Int?      // seconds
+  status             String
+  summary            String
+  lastSyncedAt       DateTime
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Relationships
+  feature            Feature   @relation(fields: [featureId], references: [id], onDelete: Cascade)
+
+  @@index([featureId])
+  @@index([jiraKey])
+  @@index([lastSyncedAt])
+}
+
+model GitHubRepository {
+  id             String             @id @default(uuid())
+  owner          String
+  name           String
+  fullName       String             @unique
+  defaultBranch  String
+  isActive       Boolean            @default(true)
+  lastSyncedAt   DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  // Relationships
+  commits        GitHubCommit[]
+  pullRequests   GitHubPullRequest[]
+
+  @@index([fullName])
+  @@index([isActive])
+}
+
+model GitHubCommit {
+  id             String           @id @default(uuid())
+  repositoryId   String
+  featureId      String?
+  sha            String
+  message        String
+  author         String
+  authorEmail    String
+  committedAt    DateTime
+  additions      Int
+  deletions      Int
+  totalChanges   Int
+  filesChanged   Int
+  branchName     String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  // Relationships
+  repository     GitHubRepository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  feature        Feature?         @relation(fields: [featureId], references: [id], onDelete: SetNull)
+
+  @@unique([repositoryId, sha])
+  @@index([featureId])
+  @@index([committedAt])
+  @@index([branchName])
+}
+
+model GitHubPullRequest {
+  id                      String             @id @default(uuid())
+  repositoryId            String
+  featureId               String?
+  number                  Int
+  title                   String
+  description             String?
+  state                   PullRequestState
+  author                  String
+  createdAt               DateTime
+  mergedAt                DateTime?
+  closedAt                DateTime?
+  reviewCount             Int                @default(0)
+  approvalCount           Int                @default(0)
+  changesRequestedCount   Int                @default(0)
+  commentCount            Int                @default(0)
+  reviewers               Json               // Array of reviewer usernames
+  timeToFirstReview       Int?               // seconds
+  timeToMerge             Int?               // seconds
+  reviewIterations        Int                @default(0)
+  additions               Int
+  deletions               Int
+  filesChanged            Int
+  updatedAt               DateTime           @updatedAt
+
+  // Relationships
+  repository              GitHubRepository   @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  feature                 Feature?           @relation(fields: [featureId], references: [id], onDelete: SetNull)
+
+  @@unique([repositoryId, number])
+  @@index([featureId])
+  @@index([state])
+  @@index([mergedAt])
+}
+
+model IntegrationJob {
+  id            String     @id @default(uuid())
+  jobType       JobType
+  status        JobStatus  @default(PENDING)
+  priority      Int        @default(5) // 1-10, higher = more urgent
+  payload       Json
+  result        Json?
+  error         String?
+  retryCount    Int        @default(0)
+  maxRetries    Int        @default(3)
+  scheduledAt   DateTime   @default(now())
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([priority])
+  @@index([jobType])
+}
+
+model IntegrationCache {
+  id          String   @id @default(uuid())
+  cacheKey    String   @unique
+  cacheValue  Json
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([cacheKey])
+  @@index([expiresAt])
+}
