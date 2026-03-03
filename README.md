@@ -446,10 +446,8 @@ npm run type-check
 
 ## Documentation
 
-- **Code Summary**: `aidlc-docs/construction/reporting-visualization/code/code-summary.md`
 - **Frontend Guide**: `frontend/README.md`
 - **API Documentation**: See API Endpoints section above
-- **Architecture Docs**: `aidlc-docs/construction/`
 
 ## License
 
