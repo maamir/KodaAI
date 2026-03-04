@@ -6,12 +6,13 @@ import { logger } from '../infrastructure/logger';
 
 export class DashboardController {
   /**
-   * GET /api/dashboard
+   * GET /api/dashboard/:viewType
    * Get aggregated dashboard data
    */
   async getDashboardData(req: Request, res: Response, next: NextFunction) {
     try {
       const userId = req.user?.id || 'anonymous';
+      const { viewType } = req.params;
       const validation = dashboardDataSchema.safeParse(req.query);
 
       if (!validation.success) {
@@ -27,6 +28,7 @@ export class DashboardController {
       if (featureId) filters.featureIds = [featureId];
       if (dateRangeStart) filters.dateRangeStart = dateRangeStart;
       if (dateRangeEnd) filters.dateRangeEnd = dateRangeEnd;
+      if (viewType) filters.viewType = viewType.toUpperCase();
 
       const data = await dashboardAggregationService.getDashboardData(userId, filters);
 

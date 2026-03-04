@@ -29,9 +29,9 @@ export class CredentialManager {
    * Get Jira credentials from environment
    */
   getJiraCredentials(): JiraCredentials | null {
-    const baseUrl = config.integrations.jira.baseUrl;
-    const email = config.integrations.jira.email;
-    const apiToken = config.integrations.jira.apiToken;
+    const baseUrl = config.get('JIRA_BASE_URL');
+    const email = config.get('JIRA_EMAIL');
+    const apiToken = config.get('JIRA_API_TOKEN');
 
     if (!baseUrl || !email || !apiToken) {
       logger.warn('Jira credentials not configured');
@@ -45,16 +45,17 @@ export class CredentialManager {
    * Get GitHub credentials from environment
    */
   getGitHubCredentials(): GitHubCredentials | null {
-    const token = config.integrations.github.token;
-    const appId = config.integrations.github.appId;
-    const privateKey = config.integrations.github.privateKey;
+    const appId = config.get('GITHUB_APP_ID');
+    const privateKey = config.get('GITHUB_APP_PRIVATE_KEY');
+    const installationId = config.get('GITHUB_INSTALLATION_ID');
 
-    if (!token) {
+    if (!appId || !privateKey || !installationId) {
       logger.warn('GitHub credentials not configured');
       return null;
     }
 
-    return { token, appId, privateKey };
+    // For GitHub App, we use the private key as the token
+    return { token: privateKey, appId, privateKey };
   }
 
   /**

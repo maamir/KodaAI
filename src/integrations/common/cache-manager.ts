@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { IntegrationCacheRepository } from '../../../repositories/integration-cache.repository';
+import { IntegrationCacheRepository } from '../../repositories/integration-cache.repository';
 import { logger } from '../../infrastructure/logger';
 
 export interface CacheOptions {

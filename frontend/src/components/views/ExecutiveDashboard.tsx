@@ -18,6 +18,13 @@ export function ExecutiveDashboard() {
 
   const { summary } = data.data;
 
+  // Provide default values for summary fields
+  const totalCostSavings = summary?.totalCostSavings ?? 0;
+  const avgSpeedMultiplier = summary?.avgSpeedMultiplier ?? 0;
+  const totalFeatures = summary?.totalFeatures ?? 0;
+  const totalTimeSaved = summary?.totalTimeSaved ?? 0;
+  const avgQualityScore = summary?.avgQualityScore ?? 0;
+
   return (
     <>
       <Typography variant="h4" gutterBottom>
@@ -27,7 +34,7 @@ export function ExecutiveDashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <MetricCardWidget
             title="Total ROI"
-            value={`$${summary.totalCostSavings.toFixed(0)}`}
+            value={`$${totalCostSavings.toFixed(0)}`}
             trend="up"
             trendValue="+25%"
             color="success.main"
@@ -36,7 +43,7 @@ export function ExecutiveDashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <MetricCardWidget
             title="Productivity Gain"
-            value={`${summary.avgSpeedMultiplier.toFixed(2)}x`}
+            value={`${avgSpeedMultiplier.toFixed(2)}x`}
             trend="up"
             trendValue="+18%"
           />
@@ -45,10 +52,10 @@ export function ExecutiveDashboard() {
           <SummaryStatsWidget
             title="Key Metrics"
             stats={[
-              { label: 'Total Features', value: summary.totalFeatures },
-              { label: 'Time Saved', value: `${summary.totalTimeSaved.toFixed(1)}h` },
-              { label: 'Cost Savings', value: `$${summary.totalCostSavings.toFixed(0)}` },
-              { label: 'Quality Score', value: `${summary.avgQualityScore.toFixed(1)}%` },
+              { label: 'Total Features', value: totalFeatures },
+              { label: 'Time Saved', value: `${totalTimeSaved.toFixed(1)}h` },
+              { label: 'Cost Savings', value: `$${totalCostSavings.toFixed(0)}` },
+              { label: 'Quality Score', value: `${avgQualityScore.toFixed(1)}%` },
             ]}
           />
         </Grid>

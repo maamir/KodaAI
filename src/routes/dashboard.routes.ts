@@ -5,6 +5,14 @@ import { dashboardDataSchema } from '../types/schemas';
 
 const router = Router();
 
+// GET /api/dashboard/:viewType - Get dashboard data for specific view
+router.get(
+  '/:viewType',
+  validateRequest({ query: dashboardDataSchema }),
+  dashboardController.getDashboardData.bind(dashboardController)
+);
+
+// GET /api/dashboard - Get dashboard data (generic)
 router.get(
   '/',
   validateRequest({ query: dashboardDataSchema }),

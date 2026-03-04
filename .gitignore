@@ -4,7 +4,15 @@ UNIT-2-COMPLETION-REPORT.md
 UNIT-3-COMPLETION-REPORT.md
 UNIT-3-FRONTEND-SESSION-SUMMARY.md
 PRE-FLIGHT-CHECKLIST.md
-LOCAL-SETUP-GUIDe.md
+LOCAL-SETUP-GUIDE.md
+SETUP-GUIDE.md
+DEPLOYMENT-GUIDE.md
+DEVELOPER-QUICK-START.md
 setup-local.sh
+seed-data.js
+seed-sample-data.sh
+seed-with-time-tracking.js
 .DS_Store
 .env
+node_modules
+logs/**

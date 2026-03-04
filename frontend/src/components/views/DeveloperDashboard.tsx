@@ -17,6 +17,12 @@ export function DeveloperDashboard() {
 
   const { summary } = data.data;
 
+  // Provide default values for summary fields
+  const totalFeatures = summary?.totalFeatures ?? 0;
+  const totalTimeSaved = summary?.totalTimeSaved ?? 0;
+  const avgSpeedMultiplier = summary?.avgSpeedMultiplier ?? 0;
+  const avgQualityScore = summary?.avgQualityScore ?? 0;
+
   return (
     <>
       <Typography variant="h4" gutterBottom>
@@ -26,7 +32,7 @@ export function DeveloperDashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <MetricCardWidget
             title="Total Features"
-            value={summary.totalFeatures}
+            value={totalFeatures}
             trend="up"
             trendValue="+5%"
           />
@@ -34,7 +40,7 @@ export function DeveloperDashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <MetricCardWidget
             title="Time Saved"
-            value={`${summary.totalTimeSaved.toFixed(1)}h`}
+            value={`${totalTimeSaved.toFixed(1)}h`}
             trend="up"
             trendValue="+12%"
             color="success.main"
@@ -43,7 +49,7 @@ export function DeveloperDashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <MetricCardWidget
             title="Speed Multiplier"
-            value={`${summary.avgSpeedMultiplier.toFixed(2)}x`}
+            value={`${avgSpeedMultiplier.toFixed(2)}x`}
             trend="up"
             trendValue="+8%"
             color="primary.main"
@@ -52,7 +58,7 @@ export function DeveloperDashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <MetricCardWidget
             title="Quality Score"
-            value={`${summary.avgQualityScore.toFixed(1)}%`}
+            value={`${avgQualityScore.toFixed(1)}%`}
             trend="flat"
             color="info.main"
           />

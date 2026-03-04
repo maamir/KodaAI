@@ -18,6 +18,10 @@ export function ManagerDashboard() {
 
   const { summary } = data.data;
 
+  // Provide default values for summary fields
+  const avgSpeedMultiplier = summary?.avgSpeedMultiplier ?? 0;
+  const totalCostSavings = summary?.totalCostSavings ?? 0;
+
   return (
     <>
       <Typography variant="h4" gutterBottom>
@@ -27,7 +31,7 @@ export function ManagerDashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <MetricCardWidget
             title="Team Productivity"
-            value={`${summary.avgSpeedMultiplier.toFixed(2)}x`}
+            value={`${avgSpeedMultiplier.toFixed(2)}x`}
             trend="up"
             trendValue="+15%"
           />
@@ -35,7 +39,7 @@ export function ManagerDashboard() {
         <Grid item xs={12} sm={6} md={3}>
           <MetricCardWidget
             title="Cost Savings"
-            value={`$${summary.totalCostSavings.toFixed(0)}`}
+            value={`$${totalCostSavings.toFixed(0)}`}
             trend="up"
             trendValue="+20%"
             color="success.main"
