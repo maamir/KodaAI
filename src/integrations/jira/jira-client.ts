@@ -9,6 +9,7 @@ export interface JiraIssue {
   key: string;
   fields: {
     summary: string;
+    description?: string;
     status: {
       name: string;
     };
@@ -171,7 +172,7 @@ export class JiraClient {
           async () => {
             const issue = await this.client!.issues.getIssue({
               issueIdOrKey: issueKey,
-              fields: ['summary', 'status', 'customfield_10016', 'timetracking'],
+              fields: ['summary', 'description', 'status', 'customfield_10016', 'timetracking'],
             });
 
             return issue as JiraIssue;
@@ -212,7 +213,7 @@ export class JiraClient {
               jql,
               startAt,
               maxResults,
-              fields: ['summary', 'status', 'customfield_10016', 'timetracking'],
+              fields: ['summary', 'description', 'status', 'customfield_10016', 'timetracking'],
             });
 
             return {

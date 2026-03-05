@@ -4,18 +4,6 @@ import { logger as baseLogger } from '../../infrastructure/logger';
  * Secure logger that redacts sensitive information from logs
  */
 export class SecureLogger {
-  private sensitivePatterns: RegExp[] = [
-    // API tokens and keys
-    /([a-zA-Z0-9_-]{20,})/g,
-    // Email addresses
-    /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g,
-    // Authorization headers
-    /(Bearer\s+[a-zA-Z0-9_-]+)/gi,
-    /(Basic\s+[a-zA-Z0-9+/=]+)/gi,
-    // Common secret field names
-    /(password|secret|token|key|apikey|api_key)["']?\s*[:=]\s*["']?([^"',}\s]+)/gi,
-  ];
-
   private emailPattern = /([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
 
   /**
@@ -25,7 +13,7 @@ export class SecureLogger {
     let redacted = str;
 
     // Redact email addresses (keep domain)
-    redacted = redacted.replace(this.emailPattern, (match, username, domain) => {
+    redacted = redacted.replace(this.emailPattern, (_match, username, domain) => {
       const redactedUsername = username.length > 2 
         ? `${username.substring(0, 2)}***` 
         : '***';
@@ -35,7 +23,7 @@ export class SecureLogger {
     // Redact tokens and secrets
     redacted = redacted.replace(
       /(password|secret|token|key|apikey|api_key)["']?\s*[:=]\s*["']?([^"',}\s]+)/gi,
-      (match, fieldName, value) => {
+      (_match, fieldName, value) => {
         const redactedValue = value.length > 8
           ? `${value.substring(0, 4)}...${value.substring(value.length - 4)}`
           : '***';

@@ -1,4 +1,4 @@
-import { Feature, FeatureStatus, Phase, Prisma } from '@prisma/client';
+import { Feature, FeatureStatus, Prisma } from '@prisma/client';
 import { prisma } from '../infrastructure/database';
 import { FeatureWithRelations } from '../types/entities';
 

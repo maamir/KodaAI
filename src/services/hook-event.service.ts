@@ -4,6 +4,7 @@ import { FeatureRepository } from '../repositories/feature.repository';
 import { JobQueueManagerService } from './job-queue-manager.service';
 import { logger } from '../infrastructure/logger';
 import { NotFoundError } from '../infrastructure/errors';
+import { JiraDetectionService } from './jira-detection.service';
 
 interface FileEditEventData {
   filePath: string;
@@ -27,11 +28,13 @@ export class HookEventService {
   private hookEventRepository: HookEventRepository;
   private featureRepository: FeatureRepository;
   private jobQueueManager: JobQueueManagerService;
+  private jiraDetectionService: JiraDetectionService;
 
   constructor(private prisma: PrismaClient) {
     this.hookEventRepository = new HookEventRepository(prisma);
     this.featureRepository = new FeatureRepository(prisma);
     this.jobQueueManager = new JobQueueManagerService(prisma);
+    this.jiraDetectionService = new JiraDetectionService(prisma);
   }
 
   /**
@@ -86,6 +89,17 @@ export class HookEventService {
     const feature = await this.featureRepository.findById(featureId);
     if (!feature) {
       throw new NotFoundError('Feature not found');
+    }
+
+    // Detect Jira key in prompt text and update feature tracking asynchronously
+    // This runs in the background and doesn't block the hook event processing
+    if (eventData.promptText) {
+      this.detectAndUpdateJiraFeature(eventData.promptText).catch((error) => {
+        logger.error('Failed to detect and update Jira feature', {
+          error: error.message,
+          promptText: eventData.promptText.substring(0, 100), // Log first 100 chars
+        });
+      });
     }
 
     // Create hook event
@@ -176,4 +190,33 @@ export class HookEventService {
   async getUnprocessedEvents(): Promise<HookEvent[]> {
     return this.hookEventRepository.findUnprocessed();
   }
+
+  /**
+   * Detect Jira key in message and update feature tracking
+   * This method runs asynchronously and logs results
+   */
+  private async detectAndUpdateJiraFeature(message: string): Promise<void> {
+    // Check if message contains a Jira key
+    if (!this.jiraDetectionService.containsJiraKey(message)) {
+      return;
+    }
+
+    const result = await this.jiraDetectionService.detectAndUpdateFeature(message);
+
+    if (result.success) {
+      logger.info('Detected Jira ticket and updated feature tracking', {
+        jiraKey: result.jiraKey,
+        featureName: result.featureName,
+      });
+    } else {
+      logger.warn('Failed to update feature tracking for Jira ticket', {
+        jiraKey: result.jiraKey,
+        error: result.error,
+      });
+    }
+  }
 }
+
+import { prisma } from '../infrastructure/database';
+
+export const hookEventService = new HookEventService(prisma);
